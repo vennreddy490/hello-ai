@@ -1,0 +1,16 @@
+{
+    "name": "Carlos Vargas",
+    "countryOfOrigin": "Peru",
+    "languages": [
+        "Spanish",
+        "English"
+    ],
+    "currentRole": "Software Dev at Google",
+    "skills": [
+        "agile development",
+        "networking",
+        "java"
+    ],
+    "industry": "Software",
+    "currentLocation": "Atlanta, GA"
+}

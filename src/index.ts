@@ -1,32 +1,49 @@
-/**
- * Welcome to Cloudflare Workers! This is your first worker.
- *
- * - Run `npm run dev` in your terminal to start a development server
- * - Open a browser tab at http://localhost:8787/ to see your worker in action
- * - Run `npm run deploy` to publish your worker
- *
- * Learn more at https://developers.cloudflare.com/workers/
- */
+import { Ai } from '@cloudflare/ai';
+import data from './test.json';
+
+// Define interface for mentee and mentor data
+interface Person {
+  name: string;
+  countryOfOrigin: string;
+  languages: string[];
+  currentRole: string;
+  skills: string[];
+  industry: string;
+  currentLocation: string;
+}
+
+// Extract the mentee from the data
+const [mentee, ...mentors] = data as Person[];
 
 export interface Env {
-	// Example binding to KV. Learn more at https://developers.cloudflare.com/workers/runtime-apis/kv/
-	// MY_KV_NAMESPACE: KVNamespace;
-	//
-	// Example binding to Durable Object. Learn more at https://developers.cloudflare.com/workers/runtime-apis/durable-objects/
-	// MY_DURABLE_OBJECT: DurableObjectNamespace;
-	//
-	// Example binding to R2. Learn more at https://developers.cloudflare.com/workers/runtime-apis/r2/
-	// MY_BUCKET: R2Bucket;
-	//
-	// Example binding to a Service. Learn more at https://developers.cloudflare.com/workers/runtime-apis/service-bindings/
-	// MY_SERVICE: Fetcher;
-	//
-	// Example binding to a Queue. Learn more at https://developers.cloudflare.com/queues/javascript-apis/
-	// MY_QUEUE: Queue;
+  AI: any;
 }
 
 export default {
-	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-		return new Response('Hello World!');
-	},
+  async fetch(request: Request, env: Env) {
+    const ai = new Ai(env.AI);
+
+    const messages = [
+      { role: 'system', content: `Your client is named ${mentee.name}. His info is in this JSON object:`, ...mentee },
+      { role: 'system', content: `Here are some mentors whose information is found: ${mentors.map(mentor => mentor.name).join(', ')}` },
+    //   { role: 'user', content: 'Rank the clients best to worst as a match for the client. Your answer should be in the format of: 1)____, 2)____, 3)____, 4)____. Provide ONLY THE RANKING of names in your answer.' },
+      { role: 'user', content: 'Rank which mentors would best match the client.'}
+    ];
+
+    const requestData = {
+      messages,
+    };
+
+    const response = await ai.run('@cf/meta/llama-2-7b-chat-int8', requestData);
+
+	let str = console.log(response.response)
+
+    console.log(JSON.stringify(response));
+    return new Response(JSON.stringify(response));
+	
+  },
+
+  
+
+
 };
